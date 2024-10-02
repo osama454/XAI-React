@@ -1,243 +1,168 @@
-import * as React from "react";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationPrevious,
-  PaginationNext,
-} from "@/components/ui/pagination";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import React, { useState, useMemo } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectItem } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { usePagination } from "@/hooks/usePagination";
 
-function App() {
-  const [todoTitle, setTodoTitle] = React.useState("");
-  const [todoDescription, setTodoDescription] = React.useState("");
-  const [priority, setPriority] = React.useState("");
-  const [paginationPage, setPaginationPage] = React.useState(1);
-  const [theme, setTheme] = React.useState("comfortable");
-  const [todos, setTodos] = React.useState([
-    {
-      title: "Todo 1",
-      description: "Description for Todo 1",
-      priority: "High",
-    },
-    {
-      title: "Todo 2",
-      description: "Description for Todo 2",
-      priority: "Medium",
-    },
-    { title: "Todo 3", description: "Description for Todo 3", priority: "Low" },
-  ]);
-  const [carouselApi, setCarouselApi] = React.useState(null); // Step 1: Track the Embla API
-
-  const handleSelect = (index) => {
-    if (carouselApi) {
-      carouselApi.scrollTo(index-1); // Scroll to the specific item
-    }
-  };
-  const handlePaginationClick = (page) => {
-    setPaginationPage(page);
-    handleSelect(page)
-  };
-
-  const handleAddTodo = () => {
-    if (todoTitle && todoDescription && priority) {
-      const newTodos = [
-        ...todos,
-        { title: todoTitle, description: todoDescription, priority, theme },
-      ];
-      setTodos(newTodos);
-      setTodoTitle("");
-      setTodoDescription("");
-      // setPriority("");
-      setPaginationPage(newTodos.length); // Navigate to the new todo page
-    }
-  };
-
-  const getThemeColor = (theme) => {
-    switch (theme) {
-      case "default":
-        return "bg-gray-200";
-      case "comfortable":
-        return "bg-blue-100";
-      case "compact":
-        return "bg-green-100";
-      default:
-        return "bg-gray-200";
-    }
+// Todo Item Component
+const TodoItem = ({ todo, theme }) => {
+  const bgColors = {
+    default: 'bg-blue-100',
+    comfortable: 'bg-green-100',
+    compact: 'bg-yellow-100'
   };
 
   return (
-    <div className="bg-gray-100 p-8 min-h-screen">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Create Todo</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  value={todoTitle}
-                  onChange={(e) => setTodoTitle(e.target.value)}
-                  placeholder="Title of your todo"
-                  className="shadow-sm"
-                />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  value={todoDescription}
-                  onChange={(e) => setTodoDescription(e.target.value)}
-                  placeholder="Description of your todo"
-                  className="shadow-sm"
-                />
-              </div>
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="priority">Priority</Label>
-                <Select onValueChange={(value) => setPriority(value)}>
-                  <SelectTrigger id="priority">
-                    <SelectValue placeholder="Select Priority" />
-                  </SelectTrigger>
-                  <SelectContent position="popper">
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+    <div className={`p-4 rounded-md ${bgColors[theme] || bgColors.default}`}>
+      <h3 className="text-lg font-semibold">{todo.title}</h3>
+      <p>{todo.description}</p>
+      <span className="text-sm text-gray-500">Priority: {todo.priority}</span>
+    </div>
+  );
+};
+
+// Carousel Component
+const TodoCarousel = ({ todos, currentIndex, goToPrevious, goToNext }) => {
+  return (
+    <div className="overflow-hidden relative">
+      <Button variant="outline" size="icon" onClick={goToPrevious} className="absolute left-0 top-1/2 transform -translate-y-1/2">
+        <ChevronLeft />
+      </Button>
+      {todos.map((todo, idx) => (
+        <div key={idx} className={`transition-transform duration-300 ${idx === currentIndex ? 'translate-x-0' : 'translate-x-full'}`}>
+          <TodoItem todo={todo} theme={todo.theme} />
+        </div>
+      ))}
+      <Button variant="outline" size="icon" onClick={goToNext} className="absolute right-0 top-1/2 transform -translate-y-1/2">
+        <ChevronRight />
+      </Button>
+    </div>
+  );
+};
+
+// Pagination Component
+const Pagination = ({ total, currentPage, onChange }) => {
+  const { items } = usePagination({
+    totalCount: total,
+    pageSize: 1,
+    siblingCount: 1,
+    currentPage: currentPage
+  });
+
+  return (
+    <div className="flex space-x-2">
+      {items.map(({ page, type, selected, ...item }, index) => {
+        let children = null;
+
+        if (type === 'start-ellipsis' || type === 'end-ellipsis') {
+          children = '…';
+        } else if (type === 'page') {
+          children = (
+            <Button variant={selected ? "default" : "outline"} onClick={() => onChange(page)}>
+              {page}
+            </Button>
+          );
+        } else {
+          children = (
+            <Button variant="outline" onClick={() => onChange(type === 'next' ? page + 1 : page - 1)}>
+              {type === 'next' ? 'Next' : 'Previous'}
+            </Button>
+          );
+        }
+
+        return <React.Fragment key={index}>{children}</React.Fragment>;
+      })}
+    </div>
+  );
+};
+
+// Main App Component
+export default function App() {
+  const [todos, setTodos] = useState([
+    { title: 'Sample Todo 1', description: 'This is a sample todo.', priority: 'High', theme: 'default' },
+    { title: 'Sample Todo 2', description: 'Another sample here.', priority: 'Medium', theme: 'comfortable' },
+    { title: 'Sample Todo 3', description: 'Last sample todo.', priority: 'Low', theme: 'compact' }
+  ]);
+  const [currentTodoIndex, setCurrentTodoIndex] = useState(0);
+  const [formData, setFormData] = useState({ title: '', description: '', priority: 'High', theme: 'default' });
+
+  const handleAddTodo = () => {
+    setTodos([...todos, { ...formData }]);
+    setCurrentTodoIndex(todos.length); // Move to the newly added todo
+    setFormData({ title: '', description: '', priority: 'High', theme: 'default' });
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentTodoIndex(page - 1);
+  };
+
+  return (
+    <div className="container mx-auto p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Create Todo</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="title">Title</Label>
+              <Input id="title" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
             </div>
-            <Separator className="my-4" />
-            <Label className="mb-2">Theme</Label>
-            <RadioGroup
-              value={theme}
-              onValueChange={(value) => setTheme(value)}
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="default" id="r1" />
-                <Label htmlFor="r1">Default</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="comfortable" id="r2" />
-                <Label htmlFor="r2">Comfortable</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="compact" id="r3" />
-                <Label htmlFor="r3">Compact</Label>
-              </div>
-            </RadioGroup>
-          </CardContent>
-          <CardFooter className="flex justify-between">
-            <Button onClick={handleAddTodo}>Add Todo</Button>
-          </CardFooter>
-        </Card>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Input id="description" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+            </div>
+            <div>
+              <Label>Priority</Label>
+              <Select value={formData.priority} onValueChange={(value) => setFormData({...formData, priority: value})}>
+                <SelectItem value="High">High</SelectItem>
+                <SelectItem value="Medium">Medium</SelectItem>
+                <SelectItem value="Low">Low</SelectItem>
+              </Select>
+            </div>
+          </div>
+          <Separator className="my-4" />
+          <Label>Theme</Label>
+          <RadioGroup className="flex flex-col" value={formData.theme} onValueChange={(value) => setFormData({...formData, theme: value})}>
+            <RadioGroupItem value="default">Default</RadioGroupItem>
+            <RadioGroupItem value="comfortable">Comfortable</RadioGroupItem>
+            <RadioGroupItem value="compact">Compact</RadioGroupItem>
+          </RadioGroup>
+          <Button className="mt-4" onClick={handleAddTodo}>Add Todo</Button>
+        </CardContent>
+      </Card>
+      
+      <Separator className="my-6" />
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Todo Carousel</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TodoCarousel 
+            todos={todos} 
+            currentIndex={currentTodoIndex} 
+            goToPrevious={() => setCurrentTodoIndex(Math.max(0, currentTodoIndex - 1))}
+            goToNext={() => setCurrentTodoIndex(Math.min(todos.length - 1, currentTodoIndex + 1))}
+          />
+        </CardContent>
+      </Card>
 
-        <Separator className="my-8" />
+      <Separator className="my-6" />
 
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Todo Carousel</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Carousel setApi={setCarouselApi} className="w-full max-w-lg mx-auto shadow-md">
-              <CarouselContent>
-                {todos.map((todo, index) => (
-                  <CarouselItem key={index}>
-                    <div className="p-2">
-                      <Card className={`shadow-md ${getThemeColor(todo.theme)}`} >
-                        <CardContent className="flex flex-col items-center justify-center p-6">
-                          <span className="text-2xl font-semibold">
-                            {todo.title}
-                          </span>
-                          <p className="mt-2 text-sm">{todo.description}</p>
-                          <span className="mt-4 text-sm font-medium">
-                            Priority: {todo.priority}
-                          </span>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
-            </Carousel>
-          </CardContent>
-        </Card>
-
-        <Separator className="my-8" />
-
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Pagination</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationPrevious
-                   
-                    onClick={() =>
-                      handlePaginationClick(Math.max(paginationPage - 1, 1))
-                    }
-                  />
-                </PaginationItem>
-                {Array.from({ length: todos.length }).map((_, index) => (
-                  <PaginationItem key={index + 1}>
-                    <PaginationLink
-            
-                      isActive={paginationPage === index + 1}
-                      onClick={() => handlePaginationClick(index + 1)}
-                    >
-                      {index + 1}
-                    </PaginationLink>
-                  </PaginationItem>
-                ))}
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() =>
-                      handlePaginationClick(
-                        Math.min(paginationPage + 1, todos.length)
-                      )
-                    }
-                  />
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-            <div className="mt-4 text-sm">Current Page: {paginationPage}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Pagination</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Pagination total={todos.length} currentPage={currentTodoIndex + 1} onChange={handlePageChange} />
+        </CardContent>
+      </Card>
     </div>
   );
 }
-
-export default App;
