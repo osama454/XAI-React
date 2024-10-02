@@ -54,6 +54,7 @@ export default function TaskMate() {
   const [framework, setFramework] = React.useState("");
   const [progress, setProgress] = React.useState(0);
   const [open, setOpen] = React.useState(false);
+  const [otp, setOtp] = React.useState(Array(6).fill(""));
   const [tasks, setTasks] = React.useState([
     {
       id: 1,
@@ -99,8 +100,8 @@ export default function TaskMate() {
   };
 
   const handleVerifyOtp = () => {
-    console.log("OTP submitted");
-    setOtpVerified(true);
+    console.log("Entered OTP:", otp);
+    if (otp.length==6) setOtpVerified(true);
   };
 
   const handleSelectFramework = (currentValue) => {
@@ -111,14 +112,18 @@ export default function TaskMate() {
     setOpen(false);
     console.log(`Selected framework: ${currentValue}`);
   };
-
+  const handleOtpChange = (index, value) => {
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+  };
   return (
     <div className="min-h-screen p-8 space-y-8 bg-gradient-to-b from-gray-100 to-gray-300 text-gray-800">
       {!otpVerified ? (
         // OTP Verification Section
         <div className="p-4 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
           <h2 className="text-xl font-semibold mb-4">OTP Verification</h2>
-          <InputOTP maxLength={6}>
+          <InputOTP maxLength={6} onChange={(value) => setOtp(value)}>
             <InputOTPGroup>
               <InputOTPSlot index={0} />
               <InputOTPSlot index={1} />
@@ -143,7 +148,11 @@ export default function TaskMate() {
             <Calendar
               mode="single"
               selected={date}
-              onSelect={setDate}
+              onSelect={(newDate) => {
+                if (newDate) {
+                  setDate(newDate);
+                }
+              }}
               className="rounded-md border"
             />
           </div>
