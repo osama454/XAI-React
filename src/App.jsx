@@ -1,13 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectItem } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -17,159 +20,142 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { SelectContent } from "@radix-ui/react-select";
 
-const priorityLevels = {
-  High: 3,
-  Medium: 2,
-  Low: 1,
-};
+export default function App() {
+  const [tasks, setTasks] = useState([]);
+  const [taskInput, setTaskInput] = useState({
+    name: "",
+    priority: "Medium",
+    deadline: "",
+  });
+  const [editTask, setEditTask] = useState(null);
+  const [removeTask, setRemoveTask] = useState(null);
 
-function TaskForm({ addTask, isEdit, initialData, onSave }) {
-  const [taskName, setTaskName] = useState(initialData?.name || "");
-  const [priority, setPriority] = useState(initialData?.priority || "Medium");
-  const [deadline, setDeadline] = useState(initialData?.deadline || "");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (taskName && priority && deadline) {
-      const taskData = {
-        name: taskName,
-        priority,
-        deadline,
-        priorityValue: priorityLevels[priority],
-      };
-      if (isEdit) {
-        onSave(taskData);
-      } else {
-        addTask(taskData);
-      }
-      setTaskName("");
-      setPriority("Medium");
-      setDeadline("");
-    }
-  };
-
-  useEffect(() => {
-    if (isEdit && initialData) {
-      setTaskName(initialData.name);
-      setPriority(initialData.priority);
-      setDeadline(initialData.deadline);
-    }
-  }, [isEdit, initialData]);
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        type="text"
-        value={taskName}
-        onChange={(e) => setTaskName(e.target.value)}
-        placeholder="Task Name"
-        required
-      />
-      <Select value={priority} onValueChange={setPriority}>
-        <SelectTrigger>
-          <SelectValue placeholder="Select Priority" />
-        </SelectTrigger>
-        <SelectContent>
-          {Object.keys(priorityLevels).map((p) => (
-            <SelectItem key={p} value={p}>
-              {p}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <Input
-        type="date"
-        value={deadline}
-        onChange={(e) => setDeadline(e.target.value)}
-        required
-      />
-      <Button type="submit" className="w-full">
-        {isEdit ? "Save Task" : "Add Task"}
-      </Button>
-    </form>
+  const priorities = ["High", "Medium", "Low"];
+  const priorityCount = priorities.reduce(
+    (acc, p) => ({ ...acc, [p]: tasks.filter((t) => t.priority === p).length }),
+    {}
   );
-}
 
-function TaskList({ tasks, editTask, removeTask }) {
-  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
-  const [isRemoveDialogOpen, setRemoveDialogOpen] = useState(false);
-  const [currentTask, setCurrentTask] = useState(null);
-  const [removeIndex, setRemoveIndex] = useState(null);
-
-  const openEditDialog = (task) => {
-    setCurrentTask(task);
-    setEditDialogOpen(true);
+  const handleAddTask = () => {
+    if (taskInput.name && taskInput.deadline) {
+      setTasks([...tasks, { ...taskInput, id: Date.now() }]);
+      setTaskInput({ name: "", priority: "Medium", deadline: "" });
+    }
   };
 
-  const closeEditDialog = () => {
-    setCurrentTask(null);
-    setEditDialogOpen(false);
+  const handleEditTask = () => {
+    setTasks(
+      tasks.map((t) => (t.id === editTask.id ? { ...taskInput, id: t.id } : t))
+    );
+    setEditTask(null);
   };
 
-  const openRemoveDialog = (index) => {
-    setRemoveIndex(index);
-    setRemoveDialogOpen(true);
-  };
-
-  const closeRemoveDialog = () => {
-    setRemoveIndex(null);
-    setRemoveDialogOpen(false);
+  const handleRemoveTask = () => {
+    setTasks(tasks.filter((t) => t.id !== removeTask));
+    setRemoveTask(null);
   };
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Task Name</TableHead>
-          <TableHead>Priority</TableHead>
-          <TableHead>Deadline</TableHead>
-          <TableHead>Actions</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {tasks.map((task, index) => (
-          <TableRow key={index}>
-            <TableCell>{task.name}</TableCell>
-            <TableCell>{task.priority}</TableCell>
-            <TableCell>{task.deadline}</TableCell>
-            <TableCell>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mr-2"
-                onClick={() => openEditDialog(task)}
+    <div className="container mx-auto p-4 sm:px-6 lg:px-8">
+      <div className="flex flex-col sm:flex-row gap-4 mb-4">
+        <Card className="w-full sm:w-1/2">
+          <CardHeader>
+            <CardTitle>Add Task</CardTitle>
+            <CardDescription>Enter task details below.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4">
+              <Input
+                type="text"
+                placeholder="Task Name"
+                value={taskInput.name}
+                onChange={(e) =>
+                  setTaskInput({ ...taskInput, name: e.target.value })
+                }
+              />
+              <Select
+                value={taskInput.priority}
+                onValueChange={(value) =>
+                  setTaskInput({ ...taskInput, priority: value })
+                }
               >
-                Edit
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => openRemoveDialog(index)}
-              >
-                Remove
-              </Button>
-            </TableCell>
+                <SelectContent>
+                  {priorities.map((p) => (
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                type="date"
+                value={taskInput.deadline}
+                onChange={(e) =>
+                  setTaskInput({ ...taskInput, deadline: e.target.value })
+                }
+              />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={handleAddTask}>Add Task</Button>
+          </CardFooter>
+        </Card>
+
+        <Card className="w-full sm:w-1/2">
+          <CardHeader>
+            <CardTitle>Task Priority Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {priorities.map((p) => (
+              <div key={p}>
+                {p}: {priorityCount[p]}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Task Name</TableHead>
+            <TableHead>Priority</TableHead>
+            <TableHead>Deadline</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setEditDialogOpen}>
+        </TableHeader>
+        <TableBody>
+          {tasks.map((task) => (
+            <TableRow key={task.id}>
+              <TableCell>{task.name}</TableCell>
+              <TableCell>{task.priority}</TableCell>
+              <TableCell>{task.deadline}</TableCell>
+              <TableCell>
+                <Button variant="outline" onClick={() => setEditTask(task)}>
+                  Edit
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={() => setRemoveTask(task.id)}
+                >
+                  Remove
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+
+      <Dialog open={editTask !== null} onOpenChange={() => setEditTask(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Task</DialogTitle>
@@ -177,24 +163,50 @@ function TaskList({ tasks, editTask, removeTask }) {
               Modify the task details. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          {currentTask && (
-            <TaskForm
-              isEdit={true}
-              initialData={currentTask}
-              onSave={(updatedTask) => {
-                editTask(tasks.indexOf(currentTask), updatedTask);
-                closeEditDialog();
-              }}
-            />
+          {editTask && (
+            <>
+              <Input
+                defaultValue={editTask.name}
+                onChange={(e) =>
+                  setTaskInput({ ...taskInput, name: e.target.value })
+                }
+              />
+              <Select
+                value={editTask.priority}
+                onValueChange={(value) =>
+                  setTaskInput({ ...taskInput, priority: value })
+                }
+              >
+                {priorities.map((p) => (
+                  <SelectContent>
+                    <SelectItem key={p} value={p}>
+                      {p}
+                    </SelectItem>
+                  </SelectContent>
+                ))}
+              </Select>
+              <Input
+                type="date"
+                defaultValue={editTask.deadline}
+                onChange={(e) =>
+                  setTaskInput({ ...taskInput, deadline: e.target.value })
+                }
+              />
+            </>
           )}
-          <Button variant="outline" onClick={closeEditDialog}>
-            Cancel
-          </Button>
+          <DialogFooter>
+            <Button onClick={handleEditTask}>Save Task</Button>
+            <Button variant="secondary" onClick={() => setEditTask(null)}>
+              Cancel
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Remove Confirmation Dialog */}
-      <Dialog open={isRemoveDialogOpen} onOpenChange={setRemoveDialogOpen}>
+      <Dialog
+        open={removeTask !== null}
+        onOpenChange={() => setRemoveTask(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Removal</DialogTitle>
@@ -203,89 +215,13 @@ function TaskList({ tasks, editTask, removeTask }) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              type="submit"
-              onClick={() => {
-                if (removeIndex !== null) {
-                  removeTask(removeIndex);
-                }
-                closeRemoveDialog();
-              }}
-            >
-              Yes, Remove
-            </Button>
-            <Button variant="outline" onClick={closeRemoveDialog}>
+            <Button onClick={handleRemoveTask}>Yes, Remove</Button>
+            <Button variant="secondary" onClick={() => setRemoveTask(null)}>
               Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Table>
-  );
-}
-
-function PrioritySummary({ tasks }) {
-  const highPriorityCount = tasks.filter(
-    (task) => task.priority === "High"
-  ).length;
-  const mediumPriorityCount = tasks.filter(
-    (task) => task.priority === "Medium"
-  ).length;
-  const lowPriorityCount = tasks.filter(
-    (task) => task.priority === "Low"
-  ).length;
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Task Priority Summary</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p>High Priority: {highPriorityCount}</p>
-        <p>Medium Priority: {mediumPriorityCount}</p>
-        <p>Low Priority: {lowPriorityCount}</p>
-      </CardContent>
-    </Card>
-  );
-}
-
-export default function App() {
-  const [tasks, setTasks] = useState([]);
-
-  const addTask = (task) => {
-    setTasks([...tasks, task]);
-  };
-
-  const editTask = (index, updatedTask) => {
-    const newTasks = [...tasks];
-    newTasks[index] = updatedTask;
-    setTasks(newTasks);
-  };
-
-  const removeTask = (index) => {
-    const newTasks = tasks.filter((_, i) => i !== index);
-    setTasks(newTasks);
-  };
-
-  return (
-    <div className="container mx-auto p-4 sm:p-6 max-w-3xl">
-      <h1 className="text-3xl font-bold mb-6 text-center">Task Manager</h1>
-      <div className="grid gap-6 sm:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Add Task</CardTitle>
-            <CardDescription>Enter task details below</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <TaskForm addTask={addTask} />
-          </CardContent>
-        </Card>
-        <PrioritySummary tasks={tasks} />
-      </div>
-      <div className="mt-8">
-        <h2 className="text-2xl font-semibold mb-4">Task List</h2>
-        <TaskList tasks={tasks} editTask={editTask} removeTask={removeTask} />
-      </div>
     </div>
   );
 }
