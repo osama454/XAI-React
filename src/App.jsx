@@ -78,7 +78,7 @@ const MoodLibrary = ({ onSelectMood }) => {
 
 const MoodBoard = ({ board, onUpdateBoard }) => {
   const canvasRef = useRef(null);
-  
+
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -100,7 +100,9 @@ const MoodBoard = ({ board, onUpdateBoard }) => {
 
   return (
     <div
-      className={`w-full aspect-square ${board.color?.color || "bg-white"} relative overflow-hidden border border-gray-300`}
+      className={`w-full aspect-square ${
+        board.color?.color || "bg-white"
+      } relative overflow-hidden border border-gray-300`}
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
     >
@@ -158,7 +160,9 @@ const PositionControl = ({ position, onUpdate, label }) => (
           max={100}
           step={1}
           value={[position?.x || 50]}
-          onValueChange={(value) => onUpdate({ x: value[0], y: position?.y || 50 })}
+          onValueChange={(value) =>
+            onUpdate({ x: value[0], y: position?.y || 50 })
+          }
         />
       </div>
       <div className="flex-1">
@@ -168,7 +172,9 @@ const PositionControl = ({ position, onUpdate, label }) => (
           max={100}
           step={1}
           value={[position?.y || 50]}
-          onValueChange={(value) => onUpdate({ x: position?.x || 50, y: value[0] })}
+          onValueChange={(value) =>
+            onUpdate({ x: position?.x || 50, y: value[0] })
+          }
         />
       </div>
     </div>
@@ -195,7 +201,10 @@ export default function App() {
 
   const handleSelectMood = (type, asset) => {
     const updatedBoards = [...boards];
-    updatedBoards[selectedBoard] = { ...updatedBoards[selectedBoard], [type]: asset };
+    updatedBoards[selectedBoard] = {
+      ...updatedBoards[selectedBoard],
+      [type]: asset,
+    };
     setBoards(updatedBoards);
   };
 
@@ -219,7 +228,9 @@ export default function App() {
 
   return (
     <div className="container mx-auto p-4 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">Mood Board Creator</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">
+        Mood Board Creator
+      </h1>
       <div className="flex flex-col lg:flex-row gap-6">
         <div className="w-full lg:w-1/4">
           <Card className="mb-6">
@@ -274,8 +285,11 @@ export default function App() {
                 {boards.map((board, index) => (
                   <Card
                     key={index}
-                    className={`cursor-pointer transition-all duration-200 ${selectedBoard === index ? "ring-2 ring-blue-500 shadow-lg" : "hover:shadow-md"
-                      }`}
+                    className={`cursor-pointer transition-all duration-200 ${
+                      selectedBoard === index
+                        ? "ring-2 ring-blue-500 shadow-lg"
+                        : "hover:shadow-md"
+                    }`}
                     onClick={() => setSelectedBoard(index)}
                   >
                     <CardContent className="p-2">
@@ -290,7 +304,10 @@ export default function App() {
             </CardContent>
           </Card>
           <div className="flex flex-col sm:flex-row justify-around mb-6">
-            <Button onClick={addBoard} className="w-full sm:w-auto bg-green-500 hover:bg-green-600 mb-2 sm:mb-0">
+            <Button
+              onClick={addBoard}
+              className="w-full sm:w-auto bg-green-500 hover:bg-green-600 mb-2 sm:mb-0"
+            >
               Add Mood Board
             </Button>
             {boards.length > 1 && (
@@ -307,4 +324,4 @@ export default function App() {
       </div>
     </div>
   );
-};
+}
