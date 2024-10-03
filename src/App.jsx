@@ -1,95 +1,97 @@
-import React, { useState, useEffect } from "react";
+// App.jsx
+import React, { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   Select,
-  SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectValue,
+  SelectContent /* added to fix error */,
+  SelectTrigger /* added to fix error */,
+  SelectValue /* added to fix error */,
+  SelectGroup,
 } from "@/components/ui/select";
 
 export default function App() {
-  const [mood, setMood] = useState("");
+  const [logs, setLogs] = useState([]);
   const [weather, setWeather] = useState("");
-  const [moodLog, setMoodLog] = useState([]);
-  const [moodFrequency, setMoodFrequency] = useState({});
-  const [weatherMoodMap, setWeatherMoodMap] = useState({});
+  const [mood, setMood] = useState("");
 
-  useEffect(() => {
-    if (moodLog.length > 0) {
-      calculateMoodFrequency();
-      calculateWeatherMoodMap();
-    }
-  }, [moodLog]);
+  const canLog = weather !== "" && mood !== "";
 
-  const handleAddEntry = () => {
-    if (mood && weather) {
-      const newEntry = { mood, weather, date: new Date().toLocaleString() };
-      setMoodLog([...moodLog, newEntry]);
-      setMood("");
-      setWeather("");
-    }
+  const logEntry = () => {
+    setLogs((prevLogs) => [...prevLogs, { weather, mood }]);
+    setWeather("");
+    setMood("");
   };
 
-  const calculateMoodFrequency = () => {
-    const frequency = {};
-    moodLog.forEach((entry) => {
-      if (frequency[entry.mood]) {
-        frequency[entry.mood] += 1;
-      } else {
-        frequency[entry.mood] = 1;
+  const weatherLogs = useMemo(() => {
+    return logs.reduce((acc, log) => {
+      if (!acc[log.weather]) {
+        acc[log.weather] = { moods: {}, total: 0 };
       }
-    });
-    setMoodFrequency(frequency);
-  };
+      acc[log.weather].moods[log.mood] =
+        (acc[log.weather].moods[log.mood] || 0) + 1;
+      acc[log.weather].total += 1;
+      return acc;
+    }, {});
+  }, [logs]);
 
-  const calculateWeatherMoodMap = () => {
-    const map = {};
-    moodLog.forEach((entry) => {
-      if (!map[entry.weather]) {
-        map[entry.weather] = {};
-      }
-      if (map[entry.weather][entry.mood]) {
-        map[entry.weather][entry.mood] += 1;
-      } else {
-        map[entry.weather][entry.mood] = 1;
-      }
-    });
+  const moodFrequency = useMemo(() => {
+    return logs.reduce((acc, log) => {
+      acc[log.mood] = (acc[log.mood] || 0) + 1;
+      return acc;
+    }, {});
+  }, [logs]);
 
-    // Calculate most common mood for each weather condition
-    for (const weather in map) {
-      const moods = map[weather];
-      const sortedMoods = Object.entries(moods).sort((a, b) => b[1] - a[1]);
-      if (sortedMoods.length > 0) {
-        map[weather].mostCommonMood = sortedMoods[0][0];
-      }
-    }
+  const WeatherMoodCard = ({ weather }) => {
+    const data = weatherLogs[weather] || { moods: {}, total: 0 };
+    const mostCommonMood = Object.keys(data.moods).reduce(
+      (a, b) => (data.moods[a] > data.moods[b] ? a : b),
+      ""
+    );
 
-    setWeatherMoodMap(map);
+    return (
+      <Card className="m-2 w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+        <CardHeader>
+          <CardTitle>{weather}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul>
+            {Object.entries(data.moods).map(([mood, count]) => (
+              <li key={mood}>
+                {mood}: {count}
+              </li>
+            ))}
+          </ul>
+          <p>Most Common Mood: {mostCommonMood}</p>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 space-y-6">
-      <Card className="w-full max-w-lg bg-gray-800 border border-gray-700 shadow-lg">
+    <div className="container mx-auto p-4">
+      <Card className="mb-4">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center text-yellow-400">
-            Weather & Mood Logger
-          </CardTitle>
+          <CardTitle>Weather & Mood Logger</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2">
+          {/* Fixed */}
           <Select value={weather} onValueChange={setWeather}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select the weather" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Sunny">Sunny</SelectItem>
-              <SelectItem value="Cloudy">Cloudy</SelectItem>
-              <SelectItem value="Rainy">Rainy</SelectItem>
-              <SelectItem value="Snowy">Snowy</SelectItem>
-              <SelectItem value="Windy">Windy</SelectItem>
+              <SelectGroup>
+                <SelectItem value="Sunny">Sunny</SelectItem>
+                <SelectItem value="Cloudy">Cloudy</SelectItem>
+                <SelectItem value="Rainy">Rainy</SelectItem>
+                <SelectItem value="Snowy">Snowy</SelectItem>
+                <SelectItem value="Windy">Windy</SelectItem>
+              </SelectGroup>
             </SelectContent>
           </Select>
+          {/* Fixed */}
           <Select value={mood} onValueChange={setMood}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select your mood" />
@@ -102,61 +104,32 @@ export default function App() {
               <SelectItem value="Anxious">Anxious</SelectItem>
             </SelectContent>
           </Select>
-          <Button
-            onClick={handleAddEntry}
-            disabled={!mood || !weather}
-            className="w-full bg-yellow-500 hover:bg-yellow-600 text-gray-900 font-bold"
-          >
+          <Button onClick={logEntry} disabled={!canLog}>
             Log Entry
           </Button>
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-lg bg-gray-800 border border-gray-700 shadow-lg">
+      <Card className="my-4">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center text-yellow-400">
-            Mood Insights by Weather
-          </CardTitle>
+          <CardTitle>Mood Insights by Weather</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 max-h-60 overflow-y-auto">
-          {Object.entries(weatherMoodMap).map(([weatherCondition, moods], index) => (
-            <Card key={index} className="bg-gray-700 p-4">
-              <CardTitle className="text-lg font-bold text-yellow-300">
-                Weather: {weatherCondition}
-              </CardTitle>
-              <CardContent className="text-sm space-y-1">
-                {Object.entries(moods)
-                  .filter(([key]) => key !== "mostCommonMood")
-                  .map(([mood, count]) => (
-                    <p key={mood}>
-                      {mood}: {count} {count > 1 ? "times" : "time"}
-                    </p>
-                  ))}
-                <p className="font-semibold text-yellow-400">
-                  Most Common Mood: {moods.mostCommonMood || "N/A"}
-                </p>
-              </CardContent>
-            </Card>
+        <CardContent className="flex flex-wrap">
+          {["Sunny", "Cloudy", "Rainy", "Snowy", "Windy"].map((weather) => (
+            <WeatherMoodCard key={weather} weather={weather} />
           ))}
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-lg bg-gray-800 border border-gray-700 shadow-lg">
+      <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center text-yellow-400">
-            Mood Frequency Analysis
-          </CardTitle>
+          <CardTitle>Mood Frequency Analysis</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 max-h-60 overflow-y-auto">
-          {Object.entries(moodFrequency).map(([mood, count], index) => (
-            <Card key={index} className="bg-gray-700 p-4">
-              <CardTitle className="text-lg font-bold text-yellow-300">
-                Mood: {mood}
-              </CardTitle>
-              <CardContent className="text-sm">
-                <p>Logged {count} {count > 1 ? "times" : "time"}</p>
-              </CardContent>
-            </Card>
+        <CardContent>
+          {Object.entries(moodFrequency).map(([mood, count]) => (
+            <div key={mood} className="m-2">
+              {mood}: {count}
+            </div>
           ))}
         </CardContent>
       </Card>
