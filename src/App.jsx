@@ -57,12 +57,12 @@ function App() {
 
   const handleSelect = (index) => {
     if (carouselApi) {
-      carouselApi.scrollTo(index-1); // Scroll to the specific item
+      carouselApi.scrollTo(index - 1); // Scroll to the specific item
     }
   };
   const handlePaginationClick = (page) => {
     setPaginationPage(page);
-    handleSelect(page)
+    handleSelect(page);
   };
 
   const handleAddTodo = () => {
@@ -167,12 +167,17 @@ function App() {
             <CardTitle>Todo Carousel</CardTitle>
           </CardHeader>
           <CardContent>
-            <Carousel setApi={setCarouselApi} className="w-full max-w-lg mx-auto shadow-md">
+            <Carousel
+              setApi={setCarouselApi}
+              className="w-full max-w-lg mx-auto shadow-md"
+            >
               <CarouselContent>
                 {todos.map((todo, index) => (
                   <CarouselItem key={index}>
                     <div className="p-2">
-                      <Card className={`shadow-md ${getThemeColor(todo.theme)}`} >
+                      <Card
+                        className={`shadow-md ${getThemeColor(todo.theme)}`}
+                      >
                         <CardContent className="flex flex-col items-center justify-center p-6">
                           <span className="text-2xl font-semibold">
                             {todo.title}
@@ -187,8 +192,18 @@ function App() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious />
-              <CarouselNext />
+              <CarouselPrevious
+                onClick={() => {
+                  carouselApi.scrollPrev();
+                  setPaginationPage(carouselApi.selectedScrollSnap() + 1);
+                }}
+              />
+              <CarouselNext
+                onClick={() => {
+                  carouselApi.scrollNext();
+                  setPaginationPage(carouselApi.selectedScrollSnap() + 1);
+                }}
+              />
             </Carousel>
           </CardContent>
         </Card>
@@ -204,7 +219,6 @@ function App() {
               <PaginationContent>
                 <PaginationItem>
                   <PaginationPrevious
-                   
                     onClick={() =>
                       handlePaginationClick(Math.max(paginationPage - 1, 1))
                     }
@@ -213,7 +227,6 @@ function App() {
                 {Array.from({ length: todos.length }).map((_, index) => (
                   <PaginationItem key={index + 1}>
                     <PaginationLink
-            
                       isActive={paginationPage === index + 1}
                       onClick={() => handlePaginationClick(index + 1)}
                     >
