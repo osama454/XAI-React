@@ -13,19 +13,20 @@ const moodColors = [
   { id: "color3", color: "bg-red-300", label: "Energetic" },
 ];
 
-const moodQuotes = [
-  { id: "quote1", content: "Believe in yourself." },
-  { id: "quote2", content: "Keep pushing forward." },
-  { id: "quote3", content: "You are stronger than you think." },
-];
-
 const MoodLibrary = ({ onSelectMood }) => {
   const [customQuote, setCustomQuote] = useState("");
+  const [moodQuotes, setMoodQuotes] = useState([
+    { id: 0, content: "Believe in yourself." },
+    { id: 1, content: "Keep pushing forward." },
+    { id: 2, content: "You are stronger than you think." },
+  ]);
 
   const handleCustomQuoteSubmit = (e) => {
     e.preventDefault();
     if (customQuote.trim()) {
-      onSelectMood("quote", { content: customQuote });
+      // onSelectMood("quote", { content: customQuote });
+      let id = moodQuotes[moodQuotes.length - 1] + 1;
+      setMoodQuotes((prev) => [...prev, { id, content: customQuote }]);
       setCustomQuote("");
     }
   };
@@ -112,7 +113,7 @@ const MoodBoard = ({ board, onUpdateBoard }) => {
           style={{
             top: `${board.quotePosition?.y || 50}%`,
             left: `${board.quotePosition?.x || 50}%`,
-            width: `${board.quoteSize || 60}%`,
+            fontSize: `${board.quoteSize || 60}%`,
           }}
         >
           {board.quote.content}
