@@ -1,130 +1,115 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 
-// Habit Component
-const Habit = ({ name, progress, target, color }) => {
-  const percentage = (progress / target) * 100;
+function HabitCard({ habit, onComplete }) {
+  const [count, setCount] = useState(0);
 
-  return (
-    <div className="mb-4">
-      <h3 className="text-lg font-semibold">{name}</h3>
-      <Progress value={percentage} className="mb-2" />
-      <div className="flex justify-between text-sm">
-        <span>{progress}/{target} times</span>
-        <span style={{ color }}>{percentage.toFixed(1)}%</span>
-      </div>
-    </div>
-  );
-};
-
-// Achievement Component
-const Achievement = ({ title, unlocked }) => (
-  <div className={`p-2 rounded-lg text-center ${unlocked ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-400'}`}>
-    {title}
-  </div>
-);
-
-// Main Habit Tracker Component
-const HabitTracker = () => {
-  const [habits, setHabits] = useState([
-    { name: "Exercise", target: 2, progress: 0, color: "#3B82F6" },
-    { name: "Read a Book", target: 1, progress: 0, color: "#F59E0B" },
-    { name: "Meditate", target: 3, progress: 0, color: "#10B981" },
-  ]);
-  const [newHabitName, setNewHabitName] = useState("");
-  const [newHabitTarget, setNewHabitTarget] = useState(1);
-
-  const addProgress = (index) => {
-    setHabits((prevHabits) => {
-      const updatedHabits = [...prevHabits];
-      if (updatedHabits[index].progress < updatedHabits[index].target) {
-        updatedHabits[index].progress += 1;
-      }
-      return updatedHabits;
-    });
-  };
-
-  const addNewHabit = () => {
-    if (newHabitName.trim() !== "") {
-      setHabits((prevHabits) => [
-        ...prevHabits,
-        { name: newHabitName, target: newHabitTarget, progress: 0, color: "#8B5CF6" },
-      ]);
-      setNewHabitName("");
-      setNewHabitTarget(1);
+  const handleComplete = () => {
+    if (count < habit.times) {
+      setCount(count + 1);
+      onComplete(habit.id);
     }
   };
 
-
+  const progress = (count / habit.times) * 100;
 
   return (
-    <Card className="w-full max-w-md mx-auto">
+    <Card className="mb-4">
       <CardHeader>
-        <CardTitle className="text-center text-2xl font-bold text-blue-600">
-          Daily Habit Tracker
-        </CardTitle>
+        <CardTitle>{habit.name}</CardTitle>
       </CardHeader>
       <CardContent>
-        {habits.map((habit, index) => (
-          <div key={index} className="mb-4">
-            <Habit
-              name={habit.name}
-              progress={habit.progress}
-              target={habit.target}
-              color={habit.color}
-            />
-            <Button
-              onClick={() => addProgress(index)}
-              className="w-full mb-2"
-              disabled={habit.progress >= habit.target}
-            >
-              {habit.progress >= habit.target ? "Completed" : "Do Habit"}
-            </Button>
-          </div>
-        ))}
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">New Habit Name</label>
-          <Input
-            type="text"
-            value={newHabitName}
-            onChange={(e) => setNewHabitName(e.target.value)}
-            className="w-full mb-2"
-          />
-          <label className="block text-sm font-medium text-gray-700 mb-1">Target Times per Day</label>
-          <Select onValueChange={(value) => setNewHabitTarget(parseInt(value))}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={`${newHabitTarget} times`} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1 time</SelectItem>
-              <SelectItem value="2">2 times</SelectItem>
-              <SelectItem value="3">3 times</SelectItem>
-              <SelectItem value="4">4 times</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button onClick={addNewHabit} className="w-full mt-2">
-            Add New Habit
-          </Button>
+        <Progress value={progress} className="mb-2" />
+        <div className="flex justify-between">
+          <span>{`${count}/${habit.times}`}</span>
+          <span>{`${Math.round(progress)}%`}</span>
         </div>
       </CardContent>
-      <CardFooter className="flex flex-wrap justify-around items-center">
-        {habits.every(habit => habit.progress >= habit.target) && (
-          <Achievement title="All Habits Completed!" unlocked />
-        )}
+      <CardFooter>
+        <Button
+          onClick={handleComplete}
+          disabled={count >= habit.times}
+        >
+          {count >= habit.times ? 'Completed' : 'Do it'}
+        </Button>
       </CardFooter>
-
     </Card>
   );
-};
+}
 
 export default function App() {
+  const [habits, setHabits] = useState([
+    { id: 1, name: 'Drink Water', times: 8 },
+    { id: 2, name: 'Exercise', times: 1 },
+    { id: 3, name: 'Read Book', times: 1 },
+  ]);
+  const [newHabitName, setNewHabitName] = useState('');
+  const [newHabitTimes, setNewHabitTimes] = useState(1);
+  const [allCompleted, setAllCompleted] = useState(false);
+
+  const addHabit = () => {
+    if (newHabitName && newHabitTimes > 0) {
+      const newHabit = {
+        id: habits.length + 1,
+        name: newHabitName,
+        times: parseInt(newHabitTimes, 10)
+      };
+      setHabits([...habits, newHabit]);
+      setNewHabitName('');
+      setNewHabitTimes(1);
+    }
+  };
+
+  const checkAllCompleted = () => {
+    const completed = habits.every(habit => {
+      console.log(habit.times,  habits.find(h => h.id === habit.id).completedCount);
+      return habit.times === habits.find(h => h.id === habit.id).completedCount;
+    }
+    );
+    setAllCompleted(completed);
+  };
+
+  const handleHabitCompletion = (id) => {
+    setHabits(prev =>
+      prev.map(habit =>
+        habit.id === id ? { ...habit, completedCount: (habit.completedCount || 0) + 1 } : habit
+      )
+    );
+    checkAllCompleted();
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center p-4">
-      <HabitTracker />
+    <div className="min-h-screen bg-gray-100 p-4 sm:p-8">
+      <h1 className="text-3xl font-bold text-blue-600 mb-6">Daily Habit Tracker</h1>
+      <div className="space-y-4">
+        {habits.map(habit => (
+          <HabitCard key={habit.id} habit={habit} onComplete={handleHabitCompletion} />
+        ))}
+        <Card>
+          <CardContent>
+            <div className="space-y-2">
+              <Input
+                placeholder="New Habit Name"
+                value={newHabitName}
+                onChange={(e) => setNewHabitName(e.target.value)}
+              />
+              <Input
+                type="number"
+                placeholder="Times per Day"
+                value={newHabitTimes}
+                onChange={(e) => setNewHabitTimes(e.target.value)}
+              />
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={addHabit}>Add Habit</Button>
+          </CardFooter>
+        </Card>
+      </div>
+      {allCompleted && <p className="text-green-600 mt-4 text-center">All Habits Completed!</p>}
     </div>
   );
 }
