@@ -39,14 +39,16 @@ const HabitTracker = () => {
   const [newHabitTarget, setNewHabitTarget] = useState(1);
 
   const addProgress = (index) => {
-    setHabits((prevHabits) => {
-      const updatedHabits = [...prevHabits];
-      if (updatedHabits[index].progress < updatedHabits[index].target) {
-        updatedHabits[index].progress += 1;
-      }
-      return updatedHabits;
-    });
+    setHabits((prevHabits) =>
+      prevHabits.map((habit, i) => {
+        if (i === index && habit.progress < habit.target) {
+          return { ...habit, progress: habit.progress + 1 };
+        }
+        return habit;
+      })
+    );
   };
+
 
   const addNewHabit = () => {
     if (newHabitName.trim() !== "") {
@@ -95,17 +97,12 @@ const HabitTracker = () => {
             className="w-full mb-2"
           />
           <label className="block text-sm font-medium text-gray-700 mb-1">Target Times per Day</label>
-          <Select onValueChange={(value) => setNewHabitTarget(parseInt(value))}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder={`${newHabitTarget} times`} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1 time</SelectItem>
-              <SelectItem value="2">2 times</SelectItem>
-              <SelectItem value="3">3 times</SelectItem>
-              <SelectItem value="4">4 times</SelectItem>
-            </SelectContent>
-          </Select>
+          <Input
+            type="number"
+            value={newHabitTarget}
+            onChange={(e) => setNewHabitTarget(Math.max(1, parseInt(e.target.value) || 1))}
+            className="w-full mb-2"
+          />
           <Button onClick={addNewHabit} className="w-full mt-2">
             Add New Habit
           </Button>
