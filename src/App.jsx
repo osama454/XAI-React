@@ -46,8 +46,8 @@ function HabitTrackerCard({
           onClick={onCompleteHabit}
           disabled={buttonsDisabled.completeHabit || habits.length < 3}
           className={`px-4 py-2 rounded-lg transition duration-300 ${buttonsDisabled.completeHabit || habits.length < 3
-              ? "bg-gray-500 cursor-not-allowed"
-              : "bg-[#5a189a] text-white hover:bg-[#4b1381]"
+            ? "bg-gray-500 cursor-not-allowed"
+            : "bg-[#5a189a] text-white hover:bg-[#4b1381]"
             }`}
         >
           Complete Habit
@@ -109,8 +109,8 @@ function MotivationChallenges({
         onClick={onStartMotivationChallenge}
         disabled={buttonsDisabled.startChallenge}
         className={`mt-2 px-4 py-2 rounded-lg transition duration-300 ${buttonsDisabled.startChallenge
-            ? "bg-gray-500 cursor-not-allowed"
-            : "bg-yellow-500 text-white hover:bg-yellow-600"
+          ? "bg-gray-500 cursor-not-allowed"
+          : "bg-yellow-500 text-white hover:bg-yellow-600"
           }`}
       >
         Start a Motivation Challenge
@@ -136,8 +136,8 @@ function AddHabit({ currentHabit, setCurrentHabit, onAddHabit, buttonsDisabled }
         onClick={onAddHabit}
         disabled={buttonsDisabled.addHabit}
         className={`mt-4 px-4 py-2 rounded-lg transition duration-300 ${buttonsDisabled.addHabit
-            ? "bg-gray-500 cursor-not-allowed"
-            : "bg-green-500 text-white hover:bg-green-600"
+          ? "bg-gray-500 cursor-not-allowed"
+          : "bg-green-500 text-white hover:bg-green-600"
           }`}
       >
         Add Habit
