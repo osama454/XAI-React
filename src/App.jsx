@@ -8,104 +8,102 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils";
-
-function App() {
+const HabitTracker = () => {
   const [habits, setHabits] = useState([]);
   const [challenge, setChallenge] = useState({ active: false, progress: 0 });
-  const [newHabit, setNewHabit] = useState("");
-  const canAddHabit = habits.length < 3 && challenge.active;
+  const [newHabit, setNewHabit] = useState('');
+  const [currentChallengeText, setCurrentChallengeText] = useState('None');
 
   const startChallenge = () => {
-    setChallenge({ active: true, progress: 0 });
+    setChallenge({ active: true, progress: 0, text: `Complete a habit every day for 3 days` });
+    setCurrentChallengeText('Complete a habit every day for 3 days');
   };
 
   const addHabit = () => {
-    if (newHabit && canAddHabit) {
+    if (habits.length < 3 && challenge.active) {
       setHabits([...habits, { name: newHabit, status: 'In Progress' }]);
-      setNewHabit("");
+      setNewHabit('');
     }
   };
 
   const completeHabit = () => {
-    if (challenge.progress < 3 && habits.some(h => h.status === 'In Progress')) {
-      setHabits(habits.map(h => 
-        h.status === 'In Progress' ? { ...h, status: 'Completed' } : h
-      ));
-      setChallenge({...challenge, progress: challenge.progress + 1});
+    if (habits.length === 3 && challenge.progress < 3) {
+      let updatedHabits = habits.map((habit, index) => 
+        index === challenge.progress ? { ...habit, status: 'Completed' } : habit
+      );
+      setHabits(updatedHabits);
+      setChallenge(prev => ({ ...prev, progress: prev.progress + 1 }));
       if (challenge.progress + 1 === 3) {
-        setTimeout(() => {
-          alert("Congratulations! You have completed the challenge!");
-        }, 100);
+        alert('Congratulations! You have completed the challenge!');
       }
     }
   };
 
   const reset = () => {
     setHabits([]);
-    setChallenge({ active: false, progress: 0 });
+    setChallenge({ active: false, progress: 0, text: 'None' });
+    setCurrentChallengeText('None');
   };
 
   return (
-    <div className="bg-blue-100 min-h-screen flex flex-col items-center p-4 sm:p-8">
-      <Card className="w-full max-w-lg p-6 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-2xl">Advanced Habit Tracker</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="mb-4">Your Habits:</p>
-          {habits.map((habit, index) => (
-            <div key={index} className={cn("mb-2", habit.status === 'Completed' ? 'text-green-600' : '')}>
-              {habit.name} ({habit.status})
-            </div>
-          ))}
-          <p className="mt-4">
-            Current Habit:<br />
-            <strong>Motivation Challenge</strong><br />
-            Current Challenge: {challenge.active ? `Complete a habit every day for 3 days (Progress: ${challenge.progress}/3)` : 'None'}
-          </p>
+    <Card className="bg-blue-900 p-4 sm:p-6">
+      <CardHeader>
+        <CardTitle className="text-white text-2xl">Advanced Habit Tracker</CardTitle>
+      </CardHeader>
+      <CardContent className="text-white space-y-2">
+        <p>Your Habits:</p>
+        {habits.map((habit, idx) => (
+          <div key={idx} className={`text-${habit.status === 'Completed' ? 'green' : 'white'}-500`}>
+            {habit.name} ({habit.status})
+          </div>
+        ))}
+        <p>Current Habit:</p>
+        <p>Motivation Challenge</p>
+        <p>Current Challenge: {currentChallengeText}</p>
+        {challenge.active && <p>Progress: {challenge.progress}/3</p>}
+        <Button 
+          onClick={startChallenge} 
+          disabled={challenge.active}
+          className="mt-2 bg-yellow-400 text-black hover:bg-yellow-500"
+        >
+          Start a Motivation Challenge
+        </Button>
+        <div className="mt-4">
+          <p>Add a New Habit:</p>
+          <Input 
+            placeholder="Enter habit name" 
+            value={newHabit} 
+            onChange={(e) => setNewHabit(e.target.value)} 
+            disabled={!challenge.active}
+          />
           <Button 
-            onClick={startChallenge} 
-            disabled={challenge.active}
-            className="mt-4 bg-yellow-400 hover:bg-yellow-500"
+            onClick={addHabit} 
+            disabled={habits.length >= 3 || !challenge.active}
+            className="mt-2 bg-green-500 hover:bg-green-600"
           >
-            Start a Motivation Challenge
+            Add Habit
           </Button>
-          <div className="mt-4">
-            <label className="block mb-2">Add a New Habit:</label>
-            <Input 
-              placeholder="Enter habit name" 
-              value={newHabit} 
-              onChange={(e) => setNewHabit(e.target.value)}
-              disabled={!challenge.active}
-            />
-            <Button 
-              onClick={addHabit} 
-              disabled={!canAddHabit}
-              className="mt-2 bg-green-500 hover:bg-green-600"
-            >
-              Add Habit
-            </Button>
-          </div>
-          <div className="flex justify-between mt-4">
-            <Button 
-              onClick={completeHabit} 
-              disabled={challenge.progress >= 3 || habits.every(h => h.status === 'Completed')}
-              className="bg-purple-700 hover:bg-purple-800"
-            >
-              Complete Habit
-            </Button>
-            <Button 
-              onClick={reset} 
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Reset
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+        <div className="flex justify-between mt-4">
+          <Button 
+            onClick={completeHabit} 
+            disabled={habits.length !== 3 || challenge.progress === 3}
+            className="bg-purple-800 hover:bg-purple-900"
+          >
+            Complete Habit
+          </Button>
+          <Button 
+            onClick={reset} 
+            className="bg-red-500 hover:bg-red-600"
+          >
+            Reset
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
-}
+};
 
-export default App;
+export default function App() {
+  return <div className="min-h-screen flex items-center justify-center bg-blue-800"><HabitTracker /></div>;
+}
