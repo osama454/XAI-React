@@ -6,7 +6,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 function HabitTrackerCard({
   onAddHabit,
   onResetHabits,
@@ -41,23 +42,22 @@ function HabitTrackerCard({
         />
       </CardContent>
       <CardFooter className="flex justify-between space-x-2">
-        <button
+        <Button
           onClick={onCompleteHabit}
           disabled={buttonsDisabled.completeHabit || habits.length < 3}
-          className={`px-4 py-2 rounded-lg transition duration-300 ${
-            buttonsDisabled.completeHabit || habits.length < 3
+          className={`px-4 py-2 rounded-lg transition duration-300 ${buttonsDisabled.completeHabit || habits.length < 3
               ? "bg-gray-500 cursor-not-allowed"
               : "bg-[#5a189a] text-white hover:bg-[#4b1381]"
-          }`}
+            }`}
         >
           Complete Habit
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={onResetHabits}
           className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300"
         >
           Reset
-        </button>
+        </Button>
       </CardFooter>
     </Card>
   );
@@ -105,17 +105,16 @@ function MotivationChallenges({
           Progress: {challengeProgress}/{currentChallenge.target}
         </p>
       )}
-      <button
+      <Button
         onClick={onStartMotivationChallenge}
         disabled={buttonsDisabled.startChallenge}
-        className={`mt-2 px-4 py-2 rounded-lg transition duration-300 ${
-          buttonsDisabled.startChallenge
+        className={`mt-2 px-4 py-2 rounded-lg transition duration-300 ${buttonsDisabled.startChallenge
             ? "bg-gray-500 cursor-not-allowed"
             : "bg-yellow-500 text-white hover:bg-yellow-600"
-        }`}
+          }`}
       >
         Start a Motivation Challenge
-      </button>
+      </Button>
     </div>
   );
 }
@@ -124,7 +123,7 @@ function AddHabit({ currentHabit, setCurrentHabit, onAddHabit, buttonsDisabled }
   return (
     <div className="space-y-2">
       <h3 className="text-lg">Add a New Habit:</h3>
-      <input
+      <Input
         type="text"
         value={currentHabit.name}
         onChange={(e) =>
@@ -133,17 +132,16 @@ function AddHabit({ currentHabit, setCurrentHabit, onAddHabit, buttonsDisabled }
         placeholder="Enter habit name"
         className="px-4 py-2 rounded-lg bg-gray-700 text-white"
       />
-      <button
+      <Button
         onClick={onAddHabit}
         disabled={buttonsDisabled.addHabit}
-        className={`mt-4 px-4 py-2 rounded-lg transition duration-300 ${
-          buttonsDisabled.addHabit
+        className={`mt-4 px-4 py-2 rounded-lg transition duration-300 ${buttonsDisabled.addHabit
             ? "bg-gray-500 cursor-not-allowed"
             : "bg-green-500 text-white hover:bg-green-600"
-        }`}
+          }`}
       >
         Add Habit
-      </button>
+      </Button>
     </div>
   );
 }
